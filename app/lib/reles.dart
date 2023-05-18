@@ -3,6 +3,9 @@
 import 'package:avatar_glow/avatar_glow.dart';
 import 'package:flutter/material.dart';
 import 'package:neopop/neopop.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
 import 'dart:math';
 
 class Reles extends StatefulWidget {
@@ -15,6 +18,7 @@ class Reles extends StatefulWidget {
 class _RelesState extends State<Reles> {
   Random random = Random();
   var PIN = " ";
+  var ip = " ";
   var socket;
   List<bool> switchControllers = [
     false,
@@ -42,6 +46,7 @@ class _RelesState extends State<Reles> {
         <String, dynamic>{}) as Map;
     socket = data['socket'];
     PIN = data['PIN'];
+    ip = data['IP'];
     return Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
@@ -90,6 +95,35 @@ class _RelesState extends State<Reles> {
             ],
           ),
         ));
+  }
+
+  bool toBoolean(String str, [bool strict = false]) {
+    if (strict == true) {
+      return str == '1' || str == 'true';
+    }
+    return str != '0' && str != 'false' && str != '';
+  }
+
+  void getStates() async {
+    final response = await http.get(
+      Uri.parse('http://$ip:3731/states'),
+    );
+    String body = utf8.decode(response.bodyBytes);
+    late List<String> states;
+    states = body.split(',');
+    states.removeLast();
+    setState(() {
+      for (var i = 0; i < 6; i++) {
+        switchControllers[i] = toBoolean(states[i]);
+        if(switchControllers[i]){
+          switchColors[i] = Colors.green;
+        }
+        else{
+          switchColors[i] = Colors.red;
+        }
+      }
+    });
+    print(switchControllers[0]);
   }
 
   void sendCommand(var command) {
@@ -167,7 +201,10 @@ class _RelesState extends State<Reles> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {});
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      getStates();
+    });
   }
 
   @override

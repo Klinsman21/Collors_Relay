@@ -12,7 +12,7 @@
 #define GREEN 12
 #define BLUE 13
 #define btn 26
-#define rele1 5
+#define rele1 4
 #define rele2 18
 #define rele3 19
 #define rele4 21
@@ -44,6 +44,7 @@ RGBLed led(RED, GREEN, BLUE, RGBLed::COMMON_CATHODE);
 EasyButton button(btn);
 
 String networks = "";
+String relayStates = "";
 int wifiErrorCount = 0;
 bool refreshNetworks = false;
 int effect = 0;
@@ -373,6 +374,17 @@ void initWebSocket()
   server.addHandler(&ws);
 }
 
+String getRelayStates()
+{
+  relayStates = "";
+  for (int i = 0; i < 6; i++)
+  {
+    relayStates += releState[i];
+    relayStates += ",";
+  }
+  return relayStates;
+}
+
 String getNetworks()
 {
   refreshNetworks = false;
@@ -405,12 +417,22 @@ void factoryReset()
   settings["wifiPass"] = "";
   settings["devicePIN"] = 1234;
   settings["deviceSet"] = false;
-  delay(100);
+  led.setColor(0, 0, 0);
+  delay(1000);
+  led.setColor(100, 0, 0);
+  delay(1000);
+  led.setColor(0, 0, 0);
+  delay(1000);
+  led.setColor(100, 0, 0);
+  delay(1000);
+  led.setColor(0, 0, 0);
   save_settings();
 }
 // Callback.
 void restart()
 {
+  led.setColor(0, 100, 0);
+  delay(1500);
   ESP.restart();
 }
 
@@ -431,7 +453,7 @@ void setup()
   pinMode(rele4, OUTPUT);
   pinMode(rele5, OUTPUT);
   pinMode(rele6, OUTPUT);
- 
+
   button.onPressedFor(duration, factoryReset);
   button.onSequence(presses, timeout, restart);
   load_settings();
@@ -456,16 +478,21 @@ void setup()
   initWebSocket();
   // Print ESP32 Local IP Address
   Serial.println(WiFi.localIP());
-
+  // factoryReset();
   // Route for root / web page
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
             { request->send(404, "text/plain", settings["apName"]);
             Serial.println("Chamou"); });
-
+ 
   server.on("/networks", HTTP_GET, [](AsyncWebServerRequest *request)
             { 
               request->send(200, "text/plain", networks.c_str()); 
               refreshNetworks = true; });
+
+  server.on("/states", HTTP_GET, [](AsyncWebServerRequest *request)
+            { 
+              Serial.println("States");
+              request->send(200, "text/plain", getRelayStates().c_str()); });
 
   server.on("/settings", HTTP_GET, [](AsyncWebServerRequest *request)
             { 

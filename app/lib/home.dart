@@ -144,7 +144,7 @@ class _HomeState extends State<Home> {
                   arguments: {'socket': socket, 'PIN': PIN});
             } else if (value == 2) {
               Navigator.pushNamed(context, '/reles',
-                  arguments: {'socket': socket, 'PIN': PIN});
+                  arguments: {'socket': socket, 'PIN': PIN, 'IP': ip});
             } else if (value == 3) {
               Navigator.pushNamed(context, '/music',
                   arguments: {'socket': socket, 'PIN': PIN});

@@ -161,8 +161,8 @@ class _LoginState extends State<Login> {
                         ),
                         onPressed: () async {
                           await storage.deleteAll();
-                          // SearchDevices(context);
-                          Navigator.pushNamed(context, '/home');
+                          SearchDevices(context);
+                          // Navigator.pushNamed(context, '/home');
                         }),
                   ),
                   if (testerVisibility)
@@ -230,7 +230,10 @@ class _LoginState extends State<Login> {
                   ),
                 ),
               ),
-          ],
+            Text("Version: 3.0.0", style: TextStyle(
+              color: Colors.white
+            ),),
+            ],
         ),
       ),
     );
